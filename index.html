@@ -26,7 +26,10 @@
 
   body{
     margin:0;
-    background:var(--base);
+    background:
+      radial-gradient(820px 560px at 16% 26%, rgba(223,163,64,0.08), transparent 62%),
+      var(--base);
+    background-attachment:fixed;
     color:var(--ink);
     font-family:var(--body);
     font-size:17px;
@@ -65,12 +68,15 @@
   }
 
   .portrait{
-    width:128px;
-    height:171px;
+    width:152px;
+    height:152px;
     object-fit:cover;
-    border-radius:3px;
-    margin-bottom:30px;
-    border:1px solid var(--rule);
+    border-radius:50%;
+    margin-bottom:32px;
+    border:1px solid rgba(223,163,64,0.28);
+    box-shadow:
+      0 0 0 6px rgba(223,163,64,0.05),
+      0 20px 44px -14px rgba(0,0,0,0.75);
   }
 
   .name{
@@ -204,10 +210,15 @@
     position:relative;
     display:block;
     text-decoration:none;
-    padding:26px 0;
+    padding:26px 20px 26px 0;
     border-bottom:1px solid var(--rule);
+    transition:background .25s ease,padding-left .25s ease;
   }
   .entry:first-child{border-top:1px solid var(--rule);}
+  .entry:hover,.entry:focus-visible{
+    background:linear-gradient(90deg, rgba(223,163,64,0.055), rgba(223,163,64,0.015) 55%, transparent 82%);
+    padding-left:14px;
+  }
 
   .entry::before{
     content:"";
@@ -355,7 +366,7 @@
 <div class="shell">
 
   <header class="rail">
-    <img class="portrait" src="assets/sammy.jpg" width="128" height="171"
+    <img class="portrait" src="assets/sammy.jpg" width="152" height="152"
          alt="Samuel Adebayo">
 
     <h1 class="name">Samuel<br>Adebayo</h1>
