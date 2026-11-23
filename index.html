@@ -51,8 +51,8 @@
     margin:0 auto;
     padding:0 40px;
     display:grid;
-    grid-template-columns:minmax(0,42%) minmax(0,58%);
-    gap:72px;
+    grid-template-columns:minmax(0,35%) minmax(0,65%);
+    gap:64px;
   }
 
   /* ---------- left rail ---------- */
@@ -68,8 +68,9 @@
   }
 
   .portrait{
-    width:188px;
-    height:188px;
+    width:100%;
+    max-width:340px;
+    aspect-ratio:1/1;
     object-fit:cover;
     border-radius:50%;
     margin-bottom:34px;
@@ -351,6 +352,7 @@
       height:auto;
       padding:72px 0 8px;
     }
+    .portrait{max-width:240px;}
     .pitch{margin-bottom:28px;}
     nav{display:none;}
     .social{margin-top:28px;}
@@ -366,7 +368,7 @@
 <div class="shell">
 
   <header class="rail">
-    <img class="portrait" src="assets/sammy.jpg" width="188" height="188"
+    <img class="portrait" src="assets/sammy.jpg" width="340" height="340"
          alt="Samuel Adebayo">
 
     <h1 class="name">Samuel<br>Adebayo</h1>
