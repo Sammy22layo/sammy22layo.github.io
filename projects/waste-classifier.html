@@ -24,7 +24,12 @@
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
-    margin:0;background:var(--base);color:var(--ink);
+    margin:0;
+    background:
+      radial-gradient(760px 520px at 12% 16%, rgba(223,163,64,0.07), transparent 60%),
+      var(--base);
+    background-attachment:fixed;
+    color:var(--ink);
     font-family:var(--body);font-size:17px;line-height:1.68;
     -webkit-font-smoothing:antialiased;
   }
@@ -42,10 +47,15 @@
     display:flex;flex-direction:column;justify-content:center;padding:60px 0;
   }
   .back{
-    text-decoration:none;color:var(--mute);font-size:.85rem;
-    margin-bottom:36px;display:inline-block;transition:color .18s ease;
+    display:inline-flex;align-items:center;gap:8px;
+    text-decoration:none;color:var(--mute);font-size:.82rem;
+    margin-bottom:18px;padding:8px 15px;
+    border:1px solid var(--rule);border-radius:999px;
+    transition:color .18s ease,border-color .18s ease,background .18s ease,transform .18s ease;
   }
-  .back:hover{color:var(--brass);}
+  .back:hover{color:var(--brass);border-color:var(--brass-dim);background:rgba(223,163,64,0.06);transform:translateX(-2px);}
+  .back span{font-size:1.1em;line-height:1;}
+  .railid{color:var(--mute);font-size:.9rem;margin:0 0 34px;}
   .rail nav ul{list-style:none;margin:0;padding:0;}
   .rail nav a{
     display:block;text-decoration:none;color:var(--mute);
@@ -114,6 +124,7 @@
   .chart{
     background:var(--raise);border:1px solid var(--rule);border-radius:3px;
     padding:26px 22px;overflow-x:auto;
+    box-shadow:0 16px 38px -20px rgba(0,0,0,0.75);
   }
   .chart svg{width:100%;min-width:520px;height:auto;display:block;}
 
@@ -141,7 +152,7 @@
     .shell{grid-template-columns:1fr;gap:0;padding:0 24px;}
     .rail{position:static;height:auto;padding:40px 0 0;justify-content:flex-start;}
     .rail nav{display:none;}
-    .back{margin-bottom:0;}
+    .back{margin-bottom:14px;}
     article{padding:36px 0 90px;}
     section{margin-bottom:56px;}
     body{font-size:16px;}
@@ -154,7 +165,8 @@
 <div class="shell">
 
   <aside class="rail">
-    <a class="back" href="../index.html">Samuel Adebayo</a>
+    <a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to home</a>
+    <div class="railid">Samuel Adebayo</div>
     <nav>
       <ul>
         <li><a href="#problem" class="on">The problem</a></li>
