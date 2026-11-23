@@ -258,10 +258,12 @@
 
   .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:18px;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
     margin-bottom:14px;
   }
+  .grid .shot{height:200px;}
+  .grid .shot img{height:100%;object-fit:cover;object-position:top center;}
   .grid figcaption{margin-top:9px;font-size:.79rem;}
 
   .livebtn{
