@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two marketplaces, one set of numbers — Samuel Adebayo</title>
+<meta name="description" content="A post-acquisition data platform reconciling a Brazilian and a South African marketplace into one warehouse. Azure Data Factory, Databricks, Power BI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --base:#101520;
+    --raise:#161C2A;
+    --rule:#242D3E;
+    --ink:#E9E6DF;
+    --mute:#8E99AE;
+    --brass:#DFA340;
+    --brass-dim:#8A6526;
+    --display:'Fraunces',Georgia,serif;
+    --body:'Karla',system-ui,sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    margin:0;
+    background:var(--base);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:17px;
+    line-height:1.68;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:inherit;}
+  ::selection{background:var(--brass);color:var(--base);}
+  :focus-visible{outline:2px solid var(--brass);outline-offset:3px;}
+
+  .shell{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 40px;
+    display:grid;
+    grid-template-columns:210px minmax(0,1fr);
+    gap:64px;
+  }
+
+  /* ---------- contents rail ---------- */
+
+  .rail{
+    position:sticky;
+    top:0;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:60px 0;
+  }
+
+  .back{
+    text-decoration:none;
+    color:var(--mute);
+    font-size:.85rem;
+    margin-bottom:36px;
+    display:inline-block;
+    transition:color .18s ease;
+  }
+  .back:hover{color:var(--brass);}
+
+  .rail nav ul{list-style:none;margin:0;padding:0;}
+  .rail nav a{
+    display:block;
+    text-decoration:none;
+    color:var(--mute);
+    font-size:.85rem;
+    line-height:1.35;
+    padding:7px 0 7px 14px;
+    border-left:1px solid var(--rule);
+    transition:color .18s ease,border-color .18s ease;
+  }
+  .rail nav a:hover{color:var(--ink);}
+  .rail nav a.on{color:var(--brass);border-color:var(--brass);}
+
+  /* ---------- article ---------- */
+
+  article{padding:88px 0 140px;}
+
+  .kicker{color:var(--mute);font-size:.88rem;margin:0 0 14px;}
+
+  h1{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(2.1rem,4.2vw,3rem);
+    line-height:1.08;
+    letter-spacing:-.02em;
+    margin:0 0 20px;
+    max-width:16ch;
+  }
+
+  .standfirst{
+    font-size:1.12rem;
+    color:var(--mute);
+    max-width:62ch;
+    margin:0 0 30px;
+  }
+
+  .meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:26px;
+    padding:18px 0;
+    border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);
+    font-size:.86rem;
+    color:var(--mute);
+    margin-bottom:64px;
+  }
+  .meta b{color:var(--ink);font-weight:500;}
+  .meta .live{color:var(--brass);}
+
+  section{margin-bottom:76px;}
+
+  h2{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:1.5rem;
+    letter-spacing:-.012em;
+    margin:0 0 18px;
+    max-width:28ch;
+  }
+
+  h3{font-size:1rem;font-weight:700;margin:32px 0 10px;}
+
+  p{max-width:66ch;margin:0 0 18px;}
+  p:last-child{margin-bottom:0;}
+
+  strong{color:var(--ink);font-weight:700;}
+  em{color:var(--ink);font-style:italic;}
+  code{font-size:.88em;color:var(--brass);}
+
+  ul.body{max-width:66ch;padding-left:0;list-style:none;margin:0 0 18px;}
+  ul.body li{
+    padding-left:20px;
+    position:relative;
+    margin-bottom:12px;
+    color:var(--mute);
+  }
+  ul.body li::before{
+    content:"";
+    position:absolute;
+    left:0;top:.72em;
+    width:7px;height:1px;
+    background:var(--brass-dim);
+  }
+  ul.body li b{color:var(--ink);font-weight:500;}
+
+  .pull{
+    border-left:2px solid var(--brass);
+    padding:4px 0 4px 20px;
+    margin:26px 0;
+    font-family:var(--display);
+    font-size:1.16rem;
+    line-height:1.45;
+    max-width:48ch;
+  }
+
+  /* ---------- findings ---------- */
+
+  .findings{border-top:1px solid var(--rule);}
+  .finding{
+    padding:30px 0;
+    border-bottom:1px solid var(--rule);
+    display:grid;
+    grid-template-columns:168px minmax(0,1fr);
+    gap:34px;
+    align-items:start;
+  }
+  .stat{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:2.15rem;
+    line-height:1;
+    color:var(--brass);
+    letter-spacing:-.025em;
+    padding-top:4px;
+  }
+  .stat small{
+    display:block;
+    font-family:var(--body);
+    font-size:.78rem;
+    font-weight:400;
+    letter-spacing:.04em;
+    color:var(--mute);
+    margin-top:9px;
+    line-height:1.4;
+  }
+  .finding h3{margin:0 0 10px;font-size:1.04rem;line-height:1.45;}
+  .finding p{margin:0;color:var(--mute);font-size:.96rem;}
+  .finding p + p{margin-top:12px;}
+
+  /* ---------- code ---------- */
+
+  pre{
+    background:var(--raise);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-size:.82rem;
+    line-height:1.6;
+    color:var(--mute);
+    margin:0 0 20px;
+  }
+  pre b{color:var(--brass);font-weight:400;}
+
+  /* ---------- figures ---------- */
+
+  figure{margin:0 0 30px;}
+  figcaption{
+    color:var(--mute);
+    font-size:.83rem;
+    margin-top:12px;
+    max-width:62ch;
+  }
+
+  .shot{
+    border:1px solid var(--rule);
+    border-radius:3px;
+    overflow:hidden;
+    background:var(--raise);
+    display:block;
+  }
+  .shot img{width:100%;height:auto;display:block;}
+
+  .absent{
+    padding:44px 20px;
+    text-align:center;
+    color:var(--mute);
+    font-size:.8rem;
+    border:1px dashed var(--brass-dim);
+    border-radius:3px;
+    background:rgba(223,163,64,.04);
+  }
+  .absent b{display:block;color:#F0C674;font-weight:500;margin-bottom:6px;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:18px;
+    margin-bottom:14px;
+  }
+  .grid figcaption{margin-top:9px;font-size:.79rem;}
+
+  .livebtn{
+    display:inline-flex;
+    align-items:center;
+    margin-top:2px;
+    padding:12px 22px;
+    background:var(--brass);
+    color:var(--base);
+    font-weight:700;
+    font-size:.9rem;
+    letter-spacing:.01em;
+    text-decoration:none;
+    border-radius:3px;
+    transition:transform .15s ease,background .15s ease;
+  }
+  .livebtn:hover{background:#E9B45A;transform:translateY(-1px);}
+
+  .diagram{
+    background:var(--raise);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    padding:26px 22px;
+    overflow-x:auto;
+  }
+  .diagram svg{width:100%;min-width:700px;height:auto;display:block;}
+
+  /* ---------- tables ---------- */
+
+  table{
+    border-collapse:collapse;
+    width:100%;
+    max-width:66ch;
+    font-size:.9rem;
+    margin:0 0 20px;
+  }
+  th,td{
+    text-align:left;
+    padding:11px 16px 11px 0;
+    border-bottom:1px solid var(--rule);
+    vertical-align:top;
+  }
+  th{color:var(--ink);font-weight:700;font-size:.82rem;}
+  td{color:var(--mute);}
+  td:first-child{color:var(--ink);}
+  table.num td:not(:first-child),table.num th:not(:first-child){text-align:right;}
+  tr.hero td{color:var(--brass);font-weight:700;}
+  tr.hero td:first-child{color:var(--brass);}
+
+  .note{
+    background:rgba(223,163,64,.06);
+    border:1px solid var(--brass-dim);
+    border-radius:3px;
+    padding:22px 24px;
+    max-width:66ch;
+  }
+  .note h2{font-size:1.1rem;margin-bottom:12px;}
+  .note p{color:var(--mute);}
+
+  .todo-flag{
+    display:block;
+    font-size:.79rem;
+    line-height:1.55;
+    color:#F0C674;
+    background:rgba(223,163,64,.08);
+    border:1px dashed var(--brass-dim);
+    border-radius:2px;
+    padding:12px 14px;
+    max-width:66ch;
+    margin-top:18px;
+  }
+
+  footer{
+    margin-top:80px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    color:var(--mute);
+    font-size:.84rem;
+  }
+  footer a{color:var(--brass);text-decoration:none;}
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *{transition-duration:.01ms !important;}
+  }
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr;gap:0;padding:0 24px;}
+    .rail{position:static;height:auto;padding:40px 0 0;justify-content:flex-start;}
+    .rail nav{display:none;}
+    .back{margin-bottom:0;}
+    article{padding:36px 0 90px;}
+    section{margin-bottom:58px;}
+    body{font-size:16px;}
+    .meta{gap:16px;margin-bottom:44px;}
+    .finding{grid-template-columns:1fr;gap:12px;}
+    .stat{font-size:1.9rem;}
+    .stat small{margin-top:5px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <aside class="rail">
+    <a class="back" href="../index.html">Samuel Adebayo</a>
+    <nav>
+      <ul>
+        <li><a href="#findings" class="on">What it found</a></li>
+        <li><a href="#report">The report</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#problem">The problem</a></li>
+        <li><a href="#pipeline">The pipeline</a></li>
+        <li><a href="#decisions">Decisions</a></li>
+        <li><a href="#model">The delivery model</a></li>
+        <li><a href="#evidence">Evidence</a></li>
+        <li><a href="#data">On the data</a></li>
+        <li><a href="#limits">Limitations</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <article>
+
+    <p class="kicker">Case study</p>
+    <h1>Two marketplaces, one set of numbers</h1>
+    <p class="standfirst">A Brazilian e-commerce platform acquires a South African
+      one — different systems, different currencies, different definitions of
+      "late". This is the platform that reconciles them into one warehouse with a
+      single point-in-time financial truth.</p>
+
+    <div class="meta">
+      <span><b>Role</b> &nbsp;Sole designer and builder</span>
+      <span><b>Stack</b> &nbsp;ADF · ADLS Gen2 · Databricks · Azure SQL · PySpark · scikit-learn · Power BI</span>
+      <span class="live"><b>Status</b> &nbsp;Complete</span>
+    </div>
+
+    <section id="findings">
+      <h2>What it found</h2>
+      <p>Three results the business could act on the week the warehouse went live.</p>
+
+      <div class="findings">
+
+        <div class="finding">
+          <div class="stat">−9.7%<small>$392,528 of Brazilian revenue</small></div>
+          <div>
+            <h3>Restating history at today's exchange rate understates revenue,
+              and always in the same direction.</h3>
+            <p>Point-in-time conversion gives $4,034,746.56. Applying the latest
+              rate retroactively gives $3,642,218.07. The real weakened across the
+              period, so every year-on-year comparison built on a flat rate is
+              wrong the same way.</p>
+            <p>30% of days have no published ECB rate at all. Without a
+              forward-filled rate spine those orders convert to null and revenue
+              silently drops by nearly a third.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="stat">95.2 / 65.9<small>on-time rate by platform, behind a blended 85%</small></div>
+          <div>
+            <h3>The two platforms fail their delivery promises in opposite
+              directions, and the blended number hid both.</h3>
+            <p>Combined, 85% reads as a mildly underperforming operation. It is
+              actually a well-run business at 95.2% and a broken one at 65.9% —
+              one in three South African customers is given a delivery date that
+              was never achievable.</p>
+            <p>A quantile model promises the same 14 days and hits 92.4%.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="stat">45 → 94%<small>entity-resolution precision, after fixing the measurement</small></div>
+          <div>
+            <h3>The merchant matcher scored 45% precision, and the number was
+              wrong — not the algorithm.</h3>
+            <p>Five distinct Brazilian merchants share the name "Jacarandá Shop".
+              649 merchant names are non-unique, and 76 of 120 known cross-platform
+              pairs point at an ambiguous name.</p>
+            <p>On the subset where names are unique the matcher gets 94% precision
+              and 70% recall. The fix was to correct the measurement, not the
+              code.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="report">
+      <h2>The report</h2>
+      <p>Six pages served live from a Databricks SQL warehouse: executive summary,
+        platform comparison, currency and FX impact, delivery and the promise
+        model, merchant intelligence, and data quality with lineage.</p>
+
+      <figure>
+        <div class="shot">
+          <img src="../assets/confluence/01_executive_summary.png"
+               alt="Power BI executive summary page showing revenue, platform split and delivery performance">
+        </div>
+        <figcaption>Executive summary. The FX impact and the per-platform delivery
+          split are both visible without drilling.</figcaption>
+      </figure>
+
+      <p><a class="livebtn" href="https://app.powerbi.com/view?r=eyJrIjoiZjNkOGE4M2YtNDUyNC00MWJmLWIwODUtZTQ5YjFmNGMzNDJhIiwidCI6IjVkMzIxOGEzLWNjN2ItNDVjZi04ODVmLWJmNTdhOTEyOGNkOSJ9"
+            target="_blank" rel="noopener">View it live in Power BI</a></p>
+
+      <p>The report is also in the repository as a <code>.pbix</code> with data
+        imported, so it opens and clicks through all six pages without an Azure
+        subscription.</p>
+    </section>
+
+    <section id="architecture">
+      <h2>Architecture</h2>
+
+      <figure>
+        <div class="diagram">
+          <svg viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg" role="img"
+               aria-label="Data flows from the Olist marketplace, a synthetic South African marketplace and three public APIs into Azure Data Factory, driven by a control plane in Azure SQL. Files land in ADLS Gen2, then move through bronze, silver, gold and a machine learning layer in Databricks under Unity Catalog, and are served to Power BI through a Databricks SQL warehouse.">
+            <defs>
+              <marker id="tip" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,1 L7,4 L0,7" fill="none" stroke="#DFA340" stroke-width="1.1"/>
+              </marker>
+              <style>
+                .bx{fill:#101520;stroke:#DFA340;stroke-width:1;}
+                .t{fill:#E9E6DF;font-family:Karla,sans-serif;font-size:12.5px;font-weight:500;}
+                .s{fill:#8E99AE;font-family:Karla,sans-serif;font-size:10.5px;}
+                .grp{fill:none;stroke:#242D3E;stroke-width:1;stroke-dasharray:3 4;}
+                .grpt{fill:#8E99AE;font-family:Karla,sans-serif;font-size:10.5px;letter-spacing:.09em;}
+                .ln{stroke:#DFA340;stroke-width:1;fill:none;}
+                .lbl{fill:#8E99AE;font-family:Karla,sans-serif;font-size:9.5px;text-anchor:middle;}
+              </style>
+            </defs>
+
+            <!-- sources -->
+            <text class="grpt" x="24" y="24">SOURCES</text>
+            <rect class="bx" x="24" y="52" width="160" height="44" rx="3"/>
+            <text class="t" x="38" y="71">Olist · Brazil</text>
+            <text class="s" x="38" y="86">99,441 orders</text>
+
+            <rect class="bx" x="24" y="114" width="160" height="44" rx="3"/>
+            <text class="t" x="38" y="133">ZA marketplace</text>
+            <text class="s" x="38" y="148">synthetic · 205 files</text>
+
+            <rect class="bx" x="24" y="176" width="160" height="44" rx="3"/>
+            <text class="t" x="38" y="195">Three public APIs</text>
+            <text class="s" x="38" y="210">FX · holidays · weather</text>
+
+            <path class="ln" d="M184,74 L216,74" marker-end="url(#tip)"/>
+            <path class="ln" d="M184,136 L216,136" marker-end="url(#tip)"/>
+            <path class="ln" d="M184,198 L216,198" marker-end="url(#tip)"/>
+
+            <!-- ingestion -->
+            <text class="grpt" x="222" y="24">INGESTION</text>
+            <rect class="bx" x="222" y="56" width="148" height="170" rx="3"/>
+            <text class="t" x="238" y="130">Azure Data Factory</text>
+            <text class="s" x="238" y="148">2 pipelines serving</text>
+            <text class="s" x="238" y="163">all 18 sources</text>
+
+            <rect class="bx" x="222" y="266" width="148" height="68" rx="3"/>
+            <text class="t" x="238" y="291">Control plane</text>
+            <text class="s" x="238" y="308">Azure SQL · manifest,</text>
+            <text class="s" x="238" y="322">watermarks, run audit</text>
+            <path class="ln" d="M296,266 L296,232" marker-end="url(#tip)"/>
+
+            <!-- landing -->
+            <path class="ln" d="M370,74 L452,74" marker-end="url(#tip)"/>
+            <text class="lbl" x="411" y="64">ADLS Gen2</text>
+
+            <!-- lakehouse -->
+            <rect class="grp" x="444" y="34" width="196" height="272" rx="4"/>
+            <text class="grpt" x="444" y="24">DATABRICKS · UNITY CATALOG</text>
+
+            <rect class="bx" x="458" y="52" width="168" height="44" rx="3"/>
+            <text class="t" x="472" y="71">Bronze</text>
+            <text class="s" x="472" y="86">18 tables, as landed</text>
+
+            <rect class="bx" x="458" y="114" width="168" height="44" rx="3"/>
+            <text class="t" x="472" y="133">Silver</text>
+            <text class="s" x="472" y="148">conformed · SCD2 · FX spine</text>
+
+            <rect class="bx" x="458" y="176" width="168" height="44" rx="3"/>
+            <text class="t" x="472" y="195">Gold</text>
+            <text class="s" x="472" y="210">star schema · 156,655 lines</text>
+
+            <rect class="bx" x="458" y="238" width="168" height="44" rx="3"/>
+            <text class="t" x="472" y="257">Delivery model</text>
+            <text class="s" x="472" y="272">quantile p50 · p90 · p95</text>
+
+            <path class="ln" d="M542,96 L542,110" marker-end="url(#tip)"/>
+            <path class="ln" d="M542,158 L542,172" marker-end="url(#tip)"/>
+            <path class="ln" d="M542,220 L542,234" marker-end="url(#tip)"/>
+
+            <!-- serving -->
+            <text class="grpt" x="680" y="24">SERVING</text>
+            <rect class="bx" x="680" y="114" width="190" height="44" rx="3"/>
+            <text class="t" x="694" y="133">Databricks SQL</text>
+            <text class="s" x="694" y="148">warehouse · live connection</text>
+
+            <rect class="bx" x="680" y="194" width="190" height="44" rx="3"/>
+            <text class="t" x="694" y="213">Power BI</text>
+            <text class="s" x="694" y="228">six report pages</text>
+
+            <path class="ln" d="M626,198 L648,198 L648,130 L674,130" marker-end="url(#tip)"/>
+            <path class="ln" d="M626,260 L660,260 L660,146 L674,146" marker-end="url(#tip)"/>
+            <path class="ln" d="M775,158 L775,188" marker-end="url(#tip)"/>
+          </svg>
+        </div>
+        <figcaption>One ADF pipeline serves all 15 file sources and a second
+          serves the 3 APIs, both driven by a manifest table. Adding a nineteenth
+          source is an <code>INSERT</code>, not a code change.</figcaption>
+      </figure>
+    </section>
+
+    <section id="problem">
+      <h2>The problem</h2>
+      <p>Confluence Group runs a Brazilian marketplace and has acquired a South
+        African one on a different platform. Three things are broken.</p>
+      <ul class="body">
+        <li><b>Revenue keeps moving.</b> Finance restates history at today's FX
+          rate each month, so last quarter's USD figure is different every time
+          it's reported.</li>
+        <li><b>Operations cannot compare the platforms.</b> Each defines a
+          delivery promise differently — Brazil measures from purchase, South
+          Africa from dispatch.</li>
+        <li><b>Commission may be double-paid.</b> Some merchants sell on both
+          platforms under slightly different names, and nothing links them.</li>
+      </ul>
+      <p>What the build delivers: one conformed warehouse, one merchant master
+        carrying full history, revenue fixed at the rate that applied on the day,
+        and a model that sets a delivery promise per order at a service level the
+        business chooses.</p>
+    </section>
+
+    <section id="pipeline">
+      <h2>The pipeline</h2>
+
+      <table>
+        <tr><th>Layer</th><th>What happens</th><th>Output</th></tr>
+        <tr>
+          <td>Bronze</td>
+          <td>Land all 18 sources exactly as they arrived, plus three audit
+            columns. No parsing, no renaming.</td>
+          <td>18 tables · 18/18 row counts verified</td>
+        </tr>
+        <tr>
+          <td>Silver</td>
+          <td>Unwrap the APIs, parse dates, conform two schemas onto one, map
+            status vocabularies, build the FX rate spine, run quality gates,
+            build SCD2 dimensions.</td>
+          <td>134,112 orders · 5,982 merchant versions · 1,588 daily rates ·
+            329 quarantined</td>
+        </tr>
+        <tr>
+          <td>Gold</td>
+          <td>Entity resolution across platforms, then a star schema with a
+            point-in-time join to the merchant dimension.</td>
+          <td>156,655 order lines · 4 dimensions · 206 crosswalk rows</td>
+        </tr>
+        <tr>
+          <td>ML</td>
+          <td>Leakage-safe features, time-based split, three quantile models.</td>
+          <td>19,150 holdout orders scored</td>
+        </tr>
+      </table>
+
+      <h3>Reconciliation</h3>
+      <table class="num">
+        <tr><td>Sources ingested, counts verified</td><td>18 / 18</td></tr>
+        <tr><td>Fact grain</td><td>156,655 lines · 133,354 orders</td></tr>
+        <tr><td>Rows quarantined</td><td>329 — 0.24%, all <code>NO_FX_RATE</code></td></tr>
+        <tr><td>SCD2 versions, overlapping windows</td><td>5,982 · zero</td></tr>
+        <tr><td>Difference against source</td><td>49,785.92, accounted for to the cent</td></tr>
+      </table>
+    </section>
+
+    <section id="decisions">
+      <h2>Decisions worth defending</h2>
+
+      <h3>The watermark ceiling is frozen before the copy runs, not after</h3>
+      <p>Setting the watermark to "now" when a load finishes loses every row that
+        arrived mid-run. The copy had already read its data before those rows
+        existed, and the watermark has since moved past them — so they're skipped
+        by that run and excluded from the next, silently and permanently.
+        <code>usp_StartRun</code> freezes the ceiling first;
+        <code>usp_EndRun</code> advances to that frozen value, and only on
+        success.</p>
+
+      <h3>The quality gate halts the load rather than writing what passed</h3>
+      <p>Above a 5% quarantine rate nothing is written — not even the good rows.
+        When a tenth of a file fails, the likeliest cause is that something
+        <em>changed</em>: a date format flipped, a delimiter shifted. The 90% that
+        passed are then suspect too, because they passed a check asking the wrong
+        question.</p>
+      <div class="pull">A partial load makes a dashboard quietly wrong. An
+        unchanged table and a red pipeline are unambiguous.</div>
+
+      <h3>SCD2 validity windows end one day before the next version begins</h3>
+      <p><code>date_sub(lead(snapshot_date), 1)</code> rather than
+        <code>lead(snapshot_date)</code>. Without the subtraction the handover date
+        falls inside two windows, the fact table's <code>BETWEEN</code> join
+        matches both rows, and that order's revenue is counted twice. Nothing
+        errors — the totals are simply wrong. Verified at zero overlapping windows
+        across 5,982 versions.</p>
+      <p>Related, and the reason the dimension exists at all: the fact table joins
+        on a date range, never on <code>is_current</code>. Joining on
+        <code>is_current</code> runs fine, produces one row per order, and applies
+        today's commission rate to every historical sale — discarding the entire
+        point of building SCD2.</p>
+
+      <h3>Unresolved merchant matches are left unmerged</h3>
+      <p>Three buckets, not two: MATCH, REVIEW, NO_MATCH. Two rows for one
+        merchant understates that merchant's revenue and is visible when someone
+        notices the duplicate. One wrongly merged row attributes revenue to a
+        business that did not earn it, and is invisible. 28 pairs sit in REVIEW
+        with their scores and margins, waiting for a human.</p>
+
+      <h3>Every ML feature is knowable at checkout</h3>
+      <p>The merchant's trailing delivery average uses
+        <code>rowsBetween(-50, -1)</code> — the previous 50 orders, stopping one
+        short of the current one. With <code>0</code> instead of <code>-1</code>
+        the feature contains a slice of the answer, the model scores beautifully,
+        and it collapses in production. The train/test split is chronological, and
+        the test window is trimmed 30 days short of the data end because slow
+        deliveries near the cutoff never appear as delivered.</p>
+
+      <h3>Exchange rates carry forward; they are never interpolated</h3>
+      <p>Friday's close is the last price that actually existed. An interpolated
+        Saturday rate is a number nobody traded at. <code>rate_source</code>
+        records <code>published</code> or <code>carried</code> on every row, so any
+        figure can be audited without re-deriving it.</p>
+    </section>
+
+    <section id="model">
+      <h2>The delivery promise model</h2>
+      <p>Three quantile regressions — p50, p90, p95 — trained on 107,177 orders
+        and tested on 19,150 the model had never seen. The business picks the
+        service level; the model sets the date per order.</p>
+
+      <table class="num">
+        <tr><th>Strategy</th><th>Promises</th><th>Hit rate</th></tr>
+        <tr><td>Platform's current promise</td><td>14.3 days</td><td>85.0%</td></tr>
+        <tr><td>Historical p90 per platform</td><td>19.5 days</td><td>95.8%</td></tr>
+        <tr class="hero"><td>Model p90</td><td>14.0 days</td><td>92.4%</td></tr>
+        <tr><td>Model p95</td><td>16.7 days</td><td>96.0%</td></tr>
+      </table>
+
+      <p>The model promises essentially the same number of days and hits it 7.4
+        points more often. Split by platform, the gain is almost entirely on the
+        broken side:</p>
+
+      <table class="num">
+        <tr><th></th><th>Current</th><th>Hits</th><th>Model p90</th><th>Hits</th></tr>
+        <tr><td>Brazil</td><td>18.0 d</td><td>95.2%</td><td>15.5 d</td><td>93.9%</td></tr>
+        <tr><td>South Africa</td><td>7.3 d</td><td>65.9%</td><td>11.2 d</td><td>89.6%</td></tr>
+      </table>
+
+      <p>Three features carry nearly all the signal: destination region (0.1045),
+        the merchant's trailing delivery average (0.0632) and freight cost
+        (0.0478). <strong>Weather contributed nothing measurable</strong> —
+        trailing rainfall doesn't reach the top twelve, because destination already
+        encodes climate. Reported as a negative result rather than quietly
+        dropped.</p>
+    </section>
+
+    <section id="evidence">
+      <h2>Evidence</h2>
+      <p>Azure credits expire and take the factory, the database and the audit
+        table with them. All of this was exported while it was live.</p>
+
+      <div class="grid">
+        <figure>
+          <div class="shot">
+            <img src="../assets/confluence/lineage_graph.png"
+                 alt="Unity Catalog column-level lineage graph">
+          </div>
+          <figcaption>Column-level lineage in Unity Catalog.</figcaption>
+        </figure>
+        <figure>
+          <div class="shot">
+            <img src="../assets/confluence/fx_comparison.png"
+                 alt="Databricks notebook output comparing point-in-time and flat-rate revenue">
+          </div>
+          <figcaption>The FX finding, where it was produced.</figcaption>
+        </figure>
+        <figure>
+          <div class="shot">
+            <img src="../assets/confluence/quality_gate_failure.png"
+                 alt="Azure Data Factory pipeline run failing at the quality gate">
+          </div>
+          <figcaption>The quality gate failing on purpose.</figcaption>
+        </figure>
+        <figure>
+          <div class="shot">
+            <img src="../assets/confluence/scd2_versions.png"
+                 alt="One merchant with four SCD2 versions and their validity windows">
+          </div>
+          <figcaption>One merchant, four versions, no overlap.</figcaption>
+        </figure>
+      </div>
+
+      <ul class="body">
+        <li><b>The run log.</b> Every run with timestamps, file counts, and two
+          deliberately triggered failure types with their error text. A log showing
+          only successes looks like a pipeline nobody tested.</li>
+        <li><b>The manifest export.</b> Read the rows and you understand
+          immediately why there are two pipelines instead of eighteen.</li>
+        <li><b>The pipeline JSON in Git.</b> The ARM template export is in the
+          repository, so the code is reviewable whether or not the factory still
+          exists.</li>
+        <li><b>Layer-by-layer walkthroughs.</b> Every notebook cell carries its
+          reasoning beside the code, and <code>docs/walkthroughs/</code> explains
+          each layer line by line — including the errors hit and how each was
+          resolved.</li>
+      </ul>
+    </section>
+
+    <section id="data">
+      <div class="note">
+        <h2>On the data</h2>
+        <p>The Brazilian side is the public Olist dataset — 99,441 orders, 112,650
+          items and 3,095 sellers between September 2016 and October 2018 — joined
+          to live ECB reference rates, public holiday data and 24,084 daily weather
+          observations across 36 regions.</p>
+        <p>The South African platform is synthetic, generated from the real Olist
+          seller and order data so the cross-platform merchant overlap is genuine
+          rather than invented. It deliberately carries different column names,
+          day-first dates, semicolon delimiters, ZAR amounts, a column that appears
+          partway through the period, and monthly merchant snapshots in which
+          tier, commission rate and status genuinely change.</p>
+        <p>This is disclosed rather than hidden. No public dataset offers two
+          marketplaces on incompatible systems with overlapping merchants, which is
+          precisely the problem this build exists to solve.</p>
+      </div>
+    </section>
+
+    <section id="limits">
+      <h2>Limitations</h2>
+      <p>Recorded rather than hidden. Each was a deliberate decision with a cost
+        attached.</p>
+      <ul class="body">
+        <li><b>329 orders from the 2016 Olist pilot are quarantined.</b> The FX
+          window starts 2016-12-30, so those dates have no rate to carry forward
+          from. Widening the window would fix it; the quarantine was kept because a
+          gate catching 329 rows for a stated reason is itself evidence the gate
+          works.</li>
+        <li><b>76 of 120 known merchant pairs are undecidable from name alone.</b>
+          Geography can't break the tie, because the same business has different
+          addresses in each country.</li>
+        <li><b>Refunds are ingested but not modelled.</b> They land in bronze;
+          silver doesn't yet consume them, so late-arriving refund facts aren't
+          implemented.</li>
+        <li><b>The ZA product catalogue doesn't exist.</b> The generator produced
+          SKUs without product attributes, so category, weight and volume are null
+          on that platform. Carried as typed nulls rather than invented values.</li>
+        <li><b>Delivery promises aren't directly comparable across platforms.</b>
+          Brazil measures from purchase, South Africa from dispatch. Both are
+          stored as given, with <code>promise_basis</code> exposed as a column, so
+          any comparison must slice by it.</li>
+      </ul>
+    </section>
+
+    <footer>
+      Code, notebooks and full documentation:
+      <a href="https://github.com/Sammy22layo/confluence-marketplace-integration">github.com/Sammy22layo/confluence-marketplace-integration</a>
+    </footer>
+
+  </article>
+</div>
+
+<script>
+  // Nav highlighting
+  var links = document.querySelectorAll('.rail nav a');
+  var spots = [].map.call(links, function (a) {
+    return document.querySelector(a.getAttribute('href'));
+  });
+
+  function mark() {
+    var y = window.scrollY + window.innerHeight * 0.3;
+    var current = 0;
+    spots.forEach(function (el, i) {
+      if (el && el.offsetTop <= y) current = i;
+    });
+    links.forEach(function (a, i) {
+      a.classList.toggle('on', i === current);
+    });
+  }
+
+  window.addEventListener('scroll', mark, { passive: true });
+  mark();
+
+  // Show a labelled placeholder for any screenshot not yet copied in
+  [].forEach.call(document.querySelectorAll('.shot img'), function (img) {
+    img.addEventListener('error', function () {
+      var slot = document.createElement('div');
+      slot.className = 'absent';
+      slot.innerHTML = '<b>Screenshot missing</b>' +
+                       img.getAttribute('src').split('/').pop();
+      img.parentNode.replaceChild(slot, img);
+    });
+  });
+</script>
+
+</body>
+</html>
