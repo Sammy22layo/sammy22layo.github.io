@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sorting waste from a phone camera — Samuel Adebayo</title>
+<meta name="description" content="An image classifier that names a piece of waste from a photo — the overfitting trap, the transfer-learning fix, and a deployed Streamlit demo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --base:#101520;
+    --raise:#161C2A;
+    --rule:#242D3E;
+    --ink:#E9E6DF;
+    --mute:#8E99AE;
+    --brass:#DFA340;
+    --brass-dim:#8A6526;
+    --display:'Fraunces',Georgia,serif;
+    --body:'Karla',system-ui,sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--base);color:var(--ink);
+    font-family:var(--body);font-size:17px;line-height:1.68;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  ::selection{background:var(--brass);color:var(--base);}
+  :focus-visible{outline:2px solid var(--brass);outline-offset:3px;}
+
+  .shell{
+    max-width:1180px;margin:0 auto;padding:0 40px;
+    display:grid;grid-template-columns:210px minmax(0,1fr);gap:64px;
+  }
+
+  .rail{
+    position:sticky;top:0;height:100vh;
+    display:flex;flex-direction:column;justify-content:center;padding:60px 0;
+  }
+  .back{
+    text-decoration:none;color:var(--mute);font-size:.85rem;
+    margin-bottom:36px;display:inline-block;transition:color .18s ease;
+  }
+  .back:hover{color:var(--brass);}
+  .rail nav ul{list-style:none;margin:0;padding:0;}
+  .rail nav a{
+    display:block;text-decoration:none;color:var(--mute);
+    font-size:.85rem;line-height:1.35;padding:7px 0 7px 14px;
+    border-left:1px solid var(--rule);transition:color .18s ease,border-color .18s ease;
+  }
+  .rail nav a:hover{color:var(--ink);}
+  .rail nav a.on{color:var(--brass);border-color:var(--brass);}
+
+  article{padding:88px 0 140px;}
+  .kicker{color:var(--mute);font-size:.88rem;margin:0 0 14px;}
+  h1{
+    font-family:var(--display);font-weight:600;
+    font-size:clamp(2.1rem,4.2vw,3rem);line-height:1.08;
+    letter-spacing:-.02em;margin:0 0 20px;max-width:17ch;
+  }
+  .standfirst{font-size:1.12rem;color:var(--mute);max-width:62ch;margin:0 0 28px;}
+
+  .btnrow{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 30px;}
+  .livebtn{
+    display:inline-flex;align-items:center;padding:12px 22px;
+    background:var(--brass);color:var(--base);font-weight:700;font-size:.9rem;
+    text-decoration:none;border-radius:3px;transition:transform .15s ease,background .15s ease;
+  }
+  .livebtn:hover{background:#E9B45A;transform:translateY(-1px);}
+  .ghostbtn{
+    display:inline-flex;align-items:center;padding:12px 22px;
+    background:transparent;color:var(--ink);font-weight:500;font-size:.9rem;
+    text-decoration:none;border:1px solid var(--rule);border-radius:3px;
+    transition:border-color .15s ease,color .15s ease;
+  }
+  .ghostbtn:hover{border-color:var(--brass);color:var(--brass);}
+
+  .meta{
+    display:flex;flex-wrap:wrap;gap:26px;padding:18px 0;
+    border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    font-size:.86rem;color:var(--mute);margin-bottom:64px;
+  }
+  .meta b{color:var(--ink);font-weight:500;}
+  .meta .live{color:var(--brass);}
+
+  section{margin-bottom:72px;}
+  h2{
+    font-family:var(--display);font-weight:600;font-size:1.5rem;
+    letter-spacing:-.012em;margin:0 0 18px;max-width:28ch;
+  }
+  h3{font-size:1rem;font-weight:700;margin:30px 0 10px;}
+  p{max-width:66ch;margin:0 0 18px;}
+  p:last-child{margin-bottom:0;}
+  strong{color:var(--ink);font-weight:700;}
+  em{color:var(--ink);font-style:italic;}
+  code{font-size:.88em;color:var(--brass);}
+
+  ul.body{max-width:66ch;padding-left:0;list-style:none;margin:0 0 18px;}
+  ul.body li{padding-left:20px;position:relative;margin-bottom:12px;color:var(--mute);}
+  ul.body li::before{content:"";position:absolute;left:0;top:.72em;width:7px;height:1px;background:var(--brass-dim);}
+  ul.body li b{color:var(--ink);font-weight:500;}
+
+  .pull{
+    border-left:2px solid var(--brass);padding:4px 0 4px 20px;margin:26px 0;
+    font-family:var(--display);font-size:1.16rem;line-height:1.45;max-width:48ch;
+  }
+
+  figure{margin:0 0 30px;}
+  figcaption{color:var(--mute);font-size:.83rem;margin-top:12px;max-width:62ch;}
+  .chart{
+    background:var(--raise);border:1px solid var(--rule);border-radius:3px;
+    padding:26px 22px;overflow-x:auto;
+  }
+  .chart svg{width:100%;min-width:520px;height:auto;display:block;}
+
+  table{border-collapse:collapse;width:100%;max-width:66ch;font-size:.9rem;margin:0 0 20px;}
+  th,td{text-align:left;padding:11px 16px 11px 0;border-bottom:1px solid var(--rule);vertical-align:top;}
+  th{color:var(--ink);font-weight:700;font-size:.82rem;}
+  td{color:var(--mute);}
+  td:first-child{color:var(--ink);}
+  table.num td:not(:first-child),table.num th:not(:first-child){text-align:right;}
+  tr.hero td{color:var(--brass);font-weight:700;}
+  tr.hero td:first-child{color:var(--brass);}
+
+  .note{
+    background:rgba(223,163,64,.06);border:1px solid var(--brass-dim);
+    border-radius:3px;padding:22px 24px;max-width:66ch;
+  }
+  .note h2{font-size:1.1rem;margin-bottom:12px;}
+  .note p{color:var(--mute);}
+
+  footer{margin-top:80px;padding-top:22px;border-top:1px solid var(--rule);color:var(--mute);font-size:.84rem;}
+  footer a{color:var(--brass);text-decoration:none;}
+
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}*{transition-duration:.01ms !important;}}
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr;gap:0;padding:0 24px;}
+    .rail{position:static;height:auto;padding:40px 0 0;justify-content:flex-start;}
+    .rail nav{display:none;}
+    .back{margin-bottom:0;}
+    article{padding:36px 0 90px;}
+    section{margin-bottom:56px;}
+    body{font-size:16px;}
+    .meta{gap:16px;margin-bottom:44px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <aside class="rail">
+    <a class="back" href="../index.html">Samuel Adebayo</a>
+    <nav>
+      <ul>
+        <li><a href="#problem" class="on">The problem</a></li>
+        <li><a href="#data">The data</a></li>
+        <li><a href="#overfit">What went wrong</a></li>
+        <li><a href="#fix">The fix</a></li>
+        <li><a href="#honest">An honest read</a></li>
+        <li><a href="#try">Try it</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <article>
+
+    <p class="kicker">Case study</p>
+    <h1>Sorting waste from a phone camera</h1>
+    <p class="standfirst">An image classifier that names a piece of waste — cardboard,
+      glass, metal, paper, plastic or trash — from a single photo, deployed so anyone
+      can open it and point their phone at a bin. The interesting part isn't the model
+      that worked; it's the one that didn't.</p>
+
+    <div class="btnrow">
+      <a class="livebtn" href="https://garbage-classifier-app-cynuvxdl2wjykhjwcu5fvd.streamlit.app/" target="_blank" rel="noopener">View the live demo</a>
+      <a class="ghostbtn" href="https://github.com/Sammy22layo/garbage-classifier-app" target="_blank" rel="noopener">View the code</a>
+    </div>
+
+    <div class="meta">
+      <span><b>Role</b> &nbsp;Sole builder</span>
+      <span><b>Stack</b> &nbsp;TensorFlow · Keras · MobileNetV2 · ResNet50 · Streamlit</span>
+      <span class="live"><b>Status</b> &nbsp;Deployed</span>
+    </div>
+
+    <section id="problem">
+      <h2>The problem</h2>
+      <p>Recycling only works if waste is separated at the source, and most people
+        separating it are guessing — is a greasy pizza box cardboard or trash? Is this
+        cup glass or plastic? A phone can settle it: point the camera, get the
+        material. That's the tool this project builds — and ships, so it isn't a
+        notebook nobody can run.</p>
+    </section>
+
+    <section id="data">
+      <h2>The data</h2>
+      <p>The public <strong>Garbage Classification</strong> image set — 2,527 photos
+        across six categories, split 80/20 into 2,022 for training and 505 held back
+        for validation.</p>
+      <ul class="body">
+        <li><b>Six classes:</b> cardboard, glass, metal, paper, plastic, trash.</li>
+        <li><b>Small, by deep-learning standards.</b> 2,500 images is a few hundred
+          per class — and that single fact shaped everything that followed.</li>
+      </ul>
+    </section>
+
+    <section id="overfit">
+      <h2>First attempt: a model that memorised</h2>
+      <p>I started where most people start — a convolutional network built from
+        scratch, three convolution blocks into a classifier. Ten epochs in, the
+        training accuracy looked superb: <strong>96%</strong>. The validation accuracy
+        — the only number that matters — sat at <strong>64%</strong> and refused to
+        move.</p>
+
+      <figure>
+        <div class="chart">
+          <svg viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg" role="img"
+               aria-label="Line chart over 10 training epochs. Training accuracy climbs steadily from 40% to 96%, while validation accuracy rises to about 60% by epoch 3 and then stays flat near 64%. The widening gap between the two lines is overfitting.">
+            <defs>
+              <style>
+                .grid{stroke:#242D3E;stroke-width:1;}
+                .axt{fill:#8E99AE;font-family:Karla,sans-serif;font-size:11px;}
+                .axtitle{fill:#8E99AE;font-family:Karla,sans-serif;font-size:11px;letter-spacing:.05em;}
+                .lt{fill:none;stroke:#DFA340;stroke-width:2;}
+                .lv{fill:none;stroke:#8E99AE;stroke-width:2;stroke-dasharray:5 4;}
+                .lbl{font-family:Karla,sans-serif;font-size:12px;font-weight:700;}
+              </style>
+              <!-- horizontal gridlines at 0,20,40,60,80,100% -->
+              <line class="grid" x1="60" y1="40"  x2="600" y2="40"/>
+              <line class="grid" x1="60" y1="82"  x2="600" y2="82"/>
+              <line class="grid" x1="60" y1="124" x2="600" y2="124"/>
+              <line class="grid" x1="60" y1="166" x2="600" y2="166"/>
+              <line class="grid" x1="60" y1="208" x2="600" y2="208"/>
+              <line class="grid" x1="60" y1="250" x2="600" y2="250"/>
+            </defs>
+
+            <!-- y labels -->
+            <text class="axt" x="52" y="44"  text-anchor="end">100%</text>
+            <text class="axt" x="52" y="128" text-anchor="end">60%</text>
+            <text class="axt" x="52" y="254" text-anchor="end">0%</text>
+            <text class="axtitle" x="16" y="150" text-anchor="middle" transform="rotate(-90 16 150)">Accuracy</text>
+
+            <!-- x labels -->
+            <text class="axt" x="60"  y="268" text-anchor="middle">1</text>
+            <text class="axt" x="300" y="268" text-anchor="middle">5</text>
+            <text class="axt" x="600" y="268" text-anchor="middle">10</text>
+            <text class="axtitle" x="330" y="290" text-anchor="middle">Epoch</text>
+
+            <!-- training accuracy -->
+            <polyline class="lt" points="60,167 120,133.7 180,113.1 240,94 300,83.3 360,66.7 420,59.7 480,58.1 540,51.6 600,47.4"/>
+            <!-- validation accuracy -->
+            <polyline class="lv" points="60,148.2 120,130.3 180,124.8 240,126.1 300,114.8 360,123.2 420,124.8 480,119 540,126.9 600,114.8"/>
+
+            <!-- end labels -->
+            <text class="lbl" x="596" y="40"  text-anchor="end" fill="#DFA340">Training · 96%</text>
+            <text class="lbl" x="596" y="105" text-anchor="end" fill="#8E99AE">Validation · 64%</text>
+          </svg>
+        </div>
+        <figcaption>Training accuracy soars; validation flattens by epoch 3. The gap
+          isn't learning — it's the model memorising the 2,022 training photos.</figcaption>
+      </figure>
+
+      <p>That gap has a name: <strong>overfitting</strong>. With only a few hundred
+        images per class, a network with millions of free parameters doesn't learn
+        what a glass bottle <em>is</em> — it memorises the specific bottles it was
+        shown. On anything new, it guesses.</p>
+      <div class="pull">A high training score with a flat validation score isn't a
+        model that works. It's a model that has memorised the answer sheet.</div>
+    </section>
+
+    <section id="fix">
+      <h2>The fix: borrow features, stretch the data</h2>
+      <p>Two changes, aimed straight at the small-data problem.</p>
+      <ul class="body">
+        <li><b>Transfer learning.</b> Instead of learning vision from 2,500 photos,
+          start from a network (<code>MobileNetV2</code>, then <code>ResNet50</code>)
+          already trained on millions of ImageNet images, and retrain only the top
+          for these six classes. The hard-won edges, textures and shapes come for
+          free.</li>
+        <li><b>Data augmentation.</b> Every epoch, each image is randomly rotated,
+          shifted, zoomed, flipped and shifted in brightness — so the model never
+          sees the exact same picture twice, and can't memorise its way out.</li>
+      </ul>
+
+      <table class="num">
+        <tr><th>Approach</th><th>Validation accuracy</th></tr>
+        <tr><td>CNN from scratch</td><td>64% &nbsp;(96% train — overfit)</td></tr>
+        <tr class="hero"><td>MobileNetV2 + augmentation</td><td>~75%</td></tr>
+        <tr class="hero"><td>ResNet50 + augmentation</td><td>~75%</td></tr>
+      </table>
+
+      <p>Validation accuracy climbed from 64% to about <strong>75%</strong>, and the
+        chasm between training and validation narrowed — the model was finally
+        generalising rather than memorising. Both pretrained backbones landed in the
+        same place, which says the ceiling here is the dataset, not the architecture.</p>
+    </section>
+
+    <section id="honest">
+      <h2>An honest read</h2>
+      <p>75% across six classes is a solid result for 2,500 images and random chance
+        of 17% — but it isn't production-grade, and I'd rather say so than round it up.</p>
+      <ul class="body">
+        <li><b>The dataset is the ceiling.</b> The clearest path past 75% is more
+          and more varied images, not a fancier model — both backbones agreed on that.</li>
+        <li><b>"Trash" is a catch-all</b> and the hardest class, since it's defined by
+          not being the other five. A real deployment would need a confidence
+          threshold and an "unsure" answer rather than a forced guess.</li>
+        <li><b>No separate test set.</b> The 75% is validation accuracy; a true
+          held-out test set would be the honest next step before trusting the number.</li>
+      </ul>
+    </section>
+
+    <section id="try">
+      <div class="note">
+        <h2>Deployed, not just trained</h2>
+        <p>The best model is wrapped in a Streamlit app: upload a photo or take one on
+          the spot, and it returns the predicted material with a confidence score. It
+          runs in the browser — no setup, nothing to install — which is the whole
+          point of building the tool rather than leaving it in a notebook.</p>
+      </div>
+      <div class="btnrow" style="margin-top:26px;">
+        <a class="livebtn" href="https://garbage-classifier-app-cynuvxdl2wjykhjwcu5fvd.streamlit.app/" target="_blank" rel="noopener">Try the live demo</a>
+        <a class="ghostbtn" href="https://github.com/Sammy22layo/garbage-classifier-app" target="_blank" rel="noopener">View the code</a>
+      </div>
+    </section>
+
+    <footer>
+      Code and notebook:
+      <a href="https://github.com/Sammy22layo/garbage-classifier-app" target="_blank" rel="noopener">github.com/Sammy22layo/garbage-classifier-app</a>
+    </footer>
+
+  </article>
+</div>
+
+<script>
+  var links = document.querySelectorAll('.rail nav a');
+  var spots = [].map.call(links, function (a) {
+    return document.querySelector(a.getAttribute('href'));
+  });
+  function mark() {
+    var y = window.scrollY + window.innerHeight * 0.3;
+    var current = 0;
+    spots.forEach(function (el, i) { if (el && el.offsetTop <= y) current = i; });
+    links.forEach(function (a, i) { a.classList.toggle('on', i === current); });
+  }
+  window.addEventListener('scroll', mark, { passive: true });
+  mark();
+</script>
+
+</body>
+</html>
