@@ -59,21 +59,24 @@
 
   .rail{
     position:sticky;
-    top:0;
-    height:100vh;
+    top:var(--rail-top,0px);   /* set by script if the rail is taller than the screen */
+    min-height:100vh;
+    align-self:start;
     display:flex;
     flex-direction:column;
-    justify-content:center;
-    padding:80px 0;
+    justify-content:safe center;
+    /* spacing shrinks on shorter screens so the whole rail fits */
+    padding:clamp(16px,3.5vh,80px) 0;
   }
 
   .portrait{
-    width:100%;
-    max-width:340px;
+    width:clamp(176px,calc(74vh - 310px),340px);
+    height:auto;
+    max-width:100%;
     aspect-ratio:1/1;
     object-fit:cover;
     border-radius:50%;
-    margin-bottom:34px;
+    margin-bottom:clamp(18px,3.5vh,34px);
     border:1px solid rgba(223,163,64,0.28);
     box-shadow:
       0 0 0 7px rgba(223,163,64,0.05),
@@ -87,20 +90,20 @@
     line-height:1.05;
     letter-spacing:-.02em;
     white-space:nowrap;
-    margin:0 0 14px;
+    margin:0 0 clamp(8px,1.6vh,14px);
   }
 
   .role{
     font-size:1.06rem;
     color:var(--ink);
-    margin:0 0 18px;
+    margin:0 0 clamp(10px,2vh,18px);
     font-weight:500;
   }
 
   .pitch{
     color:var(--mute);
     max-width:34ch;
-    margin:0 0 44px;
+    margin:0 0 clamp(20px,4.5vh,44px);
     font-size:.97rem;
   }
 
@@ -115,7 +118,8 @@
     color:var(--mute);
     font-size:.86rem;
     letter-spacing:.12em;
-    padding:7px 0;
+    line-height:1.4;
+    padding:clamp(4px,.8vh,7px) 0;
     transition:color .18s ease;
   }
   nav a::before{
@@ -131,7 +135,7 @@
   nav a.on::before{width:56px;background:var(--brass);}
 
   .social{
-    margin-top:44px;
+    margin-top:clamp(18px,4.5vh,44px);
     display:flex;
     gap:22px;
     font-size:.88rem;
@@ -359,7 +363,7 @@
       height:auto;
       padding:72px 0 8px;
     }
-    .portrait{max-width:240px;}
+    .portrait{width:100%;max-width:240px;margin-bottom:34px;}
     .pitch{margin-bottom:28px;}
     nav{display:none;}
     .social{margin-top:28px;}
@@ -564,6 +568,17 @@
 
   window.addEventListener('scroll', mark, { passive: true });
   mark();
+
+  // On very short screens the rail can be taller than the window. Let it scroll up
+  // just far enough to show its bottom (menu + links), then stay put.
+  var rail = document.querySelector('.rail');
+  function fitRail() {
+    var over = rail.offsetHeight - window.innerHeight;
+    rail.style.setProperty('--rail-top', (over > 0 ? -over : 0) + 'px');
+  }
+  window.addEventListener('resize', fitRail);
+  window.addEventListener('load', fitRail);
+  fitRail();
 </script>
 
 </body>
